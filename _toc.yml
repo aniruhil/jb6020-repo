@@ -6,5 +6,5 @@ root: docs/Intro
 parts:
   - caption: Reading Data
     chapters:
-    - file: docs/Module01
+    - file: docs/module01
    
