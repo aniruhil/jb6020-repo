@@ -1,53 +1,28 @@
-# Reading data in R
+# Introduction to Reading Data in R
 
-In this module you will learn how to 
-(a) access data files in R, both locally (i.e., from a folder on your computer) and from the web (i.e., without manually downloading a data file);
-(b) explore the contents of a data file with specific comands, 
-(c) add value labels and create a new qualitative variable, 
-(d) save data files in native R format, 
-(e) load RData files, and 
-(f) create, populate, and save a Jupyter Notebook.
+This module introduces you to basic operations in R, starting with reading data in from various formats. The latest version of [R](https://cloud.r-project.org) can be found here. If you are looking to install RStudio, you should click [here](https://www.rstudio.com/products/rstudio/download/) to access the current version. 
 
-Base R comes bundled with some built-in functions (pieces of computer code) that do a variety of things. But one often needs additional pieces of computer code to accomplish a task. Often, base R could dprobably have done the task but we might be able to complete the task faster\easier by relying on these additional pieces of computer code. You will see these additioal pieces of code being used time to time, and we call these little bundles of code __packages__.
+## Installing packages 
 
-We start by loading up a package -- [tidyverse](https://www.tidyverse.org/) -- "an opinionated collection of R packages designed for data science. All packages share an underlying design philosophy, grammar, and data structures." 
+Although R comes bundled with a lot of operations, you will most certainly want to lean on some <code>__packages__</code> authored by __`#rstats`__ users. These packages ease the learning burden even as they extend R's functionality by allowing you to gather Census data, for example, or to rely on an API to access CDC data, create maps that show the distribution of some measure at the tract-level (for example, population density or the proportion of the population lacking health insurance). There are packages designed to visualize data, generate dashboards, build applications, create interactive graphics and even animated graphics, create a website, a blogsite, a presentation slide-deck, and much more! The simplest way that I can describe a package is to speak of it as a collection of specific functions built ot achieve very specific objectives. How do we instal packages then?
 
-Well, what exactly is a __package__ in the R language? A package is best thought of as a collection of R functions, data, and documentation that explains what each function does. R has over 14,000 packages, each designed to do something very specific such as, for example, make maps, read large data files very speedily, make animated graphics, and so on. 
+You can install a single package by typing at the console prompt the following <code>__install.packages('tidyverse')__</code> and then hitting enter. If you want to install multiple packages at the same time you can list them but as follows:
 
-Each week you will see several new packages come into play because we will be relying on each to do something very specific for us. The __tidyverse__ will be a regular feature. 
+__`install.packages('devtools', 'remotes', 'lubridate', 'gapminder', 'leaflet', 'data.table', 'htmltools', 'scales', 'ggridges', 'here', 'knitr',
+'kableExtra', 'haven', 'readxl', 'namer', 'foreign', 'tidycensus', 'tidylog', 'hrbrthemes', 'ggthemes', 'plotly', 'highcharter', 'gganimate')`__
 
-How do we load a package? Well, first it has to be installed, but that has been taken care of for you. Once installed, we load it via the `library(packaganame)` command, as shown below.
-
-
-```R
-library(tidyverse)
-```
-
-    ── [1mAttaching packages[22m ─────────────────────────────────────── tidyverse 1.3.1 ──
-    
-    [32m✔[39m [34mggplot2[39m 3.3.5     [32m✔[39m [34mpurrr  [39m 0.3.4
-    [32m✔[39m [34mtibble [39m 3.1.6     [32m✔[39m [34mdplyr  [39m 1.0.7
-    [32m✔[39m [34mtidyr  [39m 1.1.4     [32m✔[39m [34mstringr[39m 1.4.0
-    [32m✔[39m [34mreadr  [39m 2.1.1     [32m✔[39m [34mforcats[39m 0.5.1
-    
-    ── [1mConflicts[22m ────────────────────────────────────────── tidyverse_conflicts() ──
-    [31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
-    [31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
-    
-
-
-The message you see with a pinkish background results from our `library(tidyverse)` command, and is just a message indicating what packages were loaded (`ggplot2, tibble, tidyr, readr, purr, dplyr, stringr, forcats`), and if there is anything else we should be aware of. In this case, there is -- some commands (`filter()` and `lag()`) used by the `dplyr` package conflict with identically named commands in the `stats` package. 
-
-`readr` is an excellent package designed to read data that might be available in various formats. Since it is loaded as a part of the `tidyverse`, let us move on to seeing how to read data.
+#### A few tips about packages ...
+- Packages often have dependencies so do not be surprised if during installation you see or are asked for permission to also install one or more other packages.
+- Packages are no always self-contained and in fact one package will often rely on one or more other packages. 
+- Packages are often udpated and so you should check and update packages as needed via __`update.packages()`__ 
+- When you update, be aware that if the package depends on other packages and these other packages have not been updated, then the update may not work. In such cases you can always install the older version of the package via, for example, __`remotes::install_version("ggplot2", version = "0.9.1", repos = "http://cran.us.r-project.org")`__
+- Some packages are also available only from the author(s)' website. In these cases you will often find the instructions for package installation on the author(s)' website. In the case of __`aws.s3`__ for example, you would have to do run the following command __`remotes::install_github("cloudyr/aws.s3")`__
 
 ## Reading data
-One of the golden rules to follow when reading data is to make your life easy by not having to memorize or discover through frantic trial-and-error runs where a particular data file is located. So how do we make our life easy? By placing all __data__ in a data folder. 
 
+We assume that you have the data-sets sent to you via `Slack` or `Teams` in the **data** sub-folder. If you don't then the commands that follow will not work. 
 
-Data come in several formats but I will walk you through the formats you are most likely to encounter -- MS Excel, CSV, TXT, fixed-width, and then in any one of these commercial software formats: SAS, Stata, or SPSS. 
-
-### CSV data files 
-We start by reading a simple `comma-separated variable` format file and then a `tab-delimited variable` format file. A CSV file has each column separated by a `comma` while a tab-delimited file has every column separated by a `tab` -- `,` versus `\t` 
+We start by reading a simple `comma-separated variable` format file and then a `tab-delimited variable` format file. 
 
 
 ```R
@@ -67,19 +42,16 @@ read.csv(
   ) -> df.tab
 ```
 
-Note ... 
-* "data/ImportDataCSV.csv" specifies the specific file that should be read from the data folder.  
-* The `sep = ","` switch says the individual variables are separated by a comma 
-* `header = TRUE` switch indicates that the first row in the file that is being read in has the column names  
-* The tab-delimited file needs `sep = "\t"` because the columns are separated by a tab 
+The `sep = ","` switch says the individual variables are separated by a comma, and `header = TRUE` switch indicates that the first row includes variable names. The tab-delimited file needs `sep = "\t"`. If both files were read then `Environment` should show objects called `df.csv` and `df.tab`. If you don't see these, check the following: 
 
-If no errors are thrown, then the files should have been read into memory and we can check their contents. The `names(filename)` command will show you the column names, and `glimpse(filename)` will show you a snippet of the data in the file.
+- Make sure you have the files in your **data** folder 
+- Make sure the folder has been correctly named (no blank spaces before or after, all lowercase, etc)  
 
 
 ```R
 names(df.csv) 
 
-glimpse(df.csv)
+head(df.csv)
 ```
 
 
@@ -92,20 +64,32 @@ glimpse(df.csv)
 
 
 
-    Rows: 7
-    Columns: 3
-    $ x [3m[90m<int>[39m[23m 1, 4, 7, 10, 13, 16, 19
-    $ y [3m[90m<int>[39m[23m 2, 5, 8, 11, 14, 17, 20
-    $ z [3m[90m<int>[39m[23m 3, 6, 9, 12, 15, 18, 21
 
+<table class="dataframe">
+<caption>A data.frame: 6 × 3</caption>
+<thead>
+	<tr><th></th><th scope=col>x</th><th scope=col>y</th><th scope=col>z</th></tr>
+	<tr><th></th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td> 1</td><td> 2</td><td> 3</td></tr>
+	<tr><th scope=row>2</th><td> 4</td><td> 5</td><td> 6</td></tr>
+	<tr><th scope=row>3</th><td> 7</td><td> 8</td><td> 9</td></tr>
+	<tr><th scope=row>4</th><td>10</td><td>11</td><td>12</td></tr>
+	<tr><th scope=row>5</th><td>13</td><td>14</td><td>15</td></tr>
+	<tr><th scope=row>6</th><td>16</td><td>17</td><td>18</td></tr>
+</tbody>
+</table>
+
+
+
+And now we repeat the preceding commands for the df.tab file
 
 
 ```R
-# And now we repeat the preceding commands for the df.tab file
-
 names(df.tab)
 
-glimpse(df.tab)
+head(df.tab)
 ```
 
 
@@ -118,164 +102,197 @@ glimpse(df.tab)
 
 
 
-    Rows: 7
-    Columns: 3
-    $ x [3m[90m<int>[39m[23m 1, 4, 7, 10, 13, 16, 19
-    $ y [3m[90m<int>[39m[23m 2, 5, 8, 11, 14, 17, 20
-    $ z [3m[90m<int>[39m[23m 3, 6, 9, 12, 15, 18, 21
+
+<table class="dataframe">
+<caption>A data.frame: 6 × 3</caption>
+<thead>
+	<tr><th></th><th scope=col>x</th><th scope=col>y</th><th scope=col>z</th></tr>
+	<tr><th></th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td> 1</td><td> 2</td><td> 3</td></tr>
+	<tr><th scope=row>2</th><td> 4</td><td> 5</td><td> 6</td></tr>
+	<tr><th scope=row>3</th><td> 7</td><td> 8</td><td> 9</td></tr>
+	<tr><th scope=row>4</th><td>10</td><td>11</td><td>12</td></tr>
+	<tr><th scope=row>5</th><td>13</td><td>14</td><td>15</td></tr>
+	<tr><th scope=row>6</th><td>16</td><td>17</td><td>18</td></tr>
+</tbody>
+</table>
 
 
-### MS Excel files
 
-Microsoft **Excel** files can be read via the `readxl` package, and you see two versions below -- one for the older `*.xls` format and the other for the newer `*.xlsx` format. 
-
-As a rule, I would recommend against storing data in Excel formats since Excel tends to do some funny things. If you must store and share data, try to use the CSV format.    
+**Excel** files can be read via the `{readxl}` package
 
 
 ```R
 library(readxl)
+library(here)
 
 read_excel(
-  "data/ImportDataXLS.xls"
-  ) -> df.xls 
+  here(
+    "data", 
+    "ImportDataXLS.xls"
+    )
+  ) -> df.xls
 
 read_excel(
-  "data/ImportDataXLSX.xlsx"
+  here(
+    "data", 
+    "ImportDataXLSX.xlsx"
+    )
   ) -> df.xlsx
 ```
 
 
 ```R
-names(df.xls)
-
-glimpse(df.xls)
+head(df.xlsx)
 ```
 
 
-<style>
-.list-inline {list-style: none; margin:0; padding: 0}
-.list-inline>li {display: inline-block}
-.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
-</style>
-<ol class=list-inline><li>'x'</li><li>'y'</li><li>'z'</li></ol>
+<table class="dataframe">
+<caption>A tibble: 6 × 3</caption>
+<thead>
+	<tr><th scope=col>x</th><th scope=col>y</th><th scope=col>z</th></tr>
+	<tr><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><td> 1</td><td> 2</td><td> 3</td></tr>
+	<tr><td> 4</td><td> 5</td><td> 6</td></tr>
+	<tr><td> 7</td><td> 8</td><td> 9</td></tr>
+	<tr><td>10</td><td>11</td><td>12</td></tr>
+	<tr><td>13</td><td>14</td><td>15</td></tr>
+	<tr><td>16</td><td>17</td><td>18</td></tr>
+</tbody>
+</table>
 
-
-
-    Rows: 7
-    Columns: 3
-    $ x [3m[90m<dbl>[39m[23m 1, 4, 7, 10, 13, 16, 19
-    $ y [3m[90m<dbl>[39m[23m 2, 5, 8, 11, 14, 17, 20
-    $ z [3m[90m<dbl>[39m[23m 3, 6, 9, 12, 15, 18, 21
 
 
 
 ```R
-names(df.xlsx)
-
-glimpse(df.xlsx)
+head(df.xlsx)
 ```
 
 
-<style>
-.list-inline {list-style: none; margin:0; padding: 0}
-.list-inline>li {display: inline-block}
-.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
-</style>
-<ol class=list-inline><li>'x'</li><li>'y'</li><li>'z'</li></ol>
+<table class="dataframe">
+<caption>A tibble: 6 × 3</caption>
+<thead>
+	<tr><th scope=col>x</th><th scope=col>y</th><th scope=col>z</th></tr>
+	<tr><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><td> 1</td><td> 2</td><td> 3</td></tr>
+	<tr><td> 4</td><td> 5</td><td> 6</td></tr>
+	<tr><td> 7</td><td> 8</td><td> 9</td></tr>
+	<tr><td>10</td><td>11</td><td>12</td></tr>
+	<tr><td>13</td><td>14</td><td>15</td></tr>
+	<tr><td>16</td><td>17</td><td>18</td></tr>
+</tbody>
+</table>
 
 
 
-    Rows: 7
-    Columns: 3
-    $ x [3m[90m<dbl>[39m[23m 1, 4, 7, 10, 13, 16, 19
-    $ y [3m[90m<dbl>[39m[23m 2, 5, 8, 11, 14, 17, 20
-    $ z [3m[90m<dbl>[39m[23m 3, 6, 9, 12, 15, 18, 21
-
-
-### SPSS, Stata, SAS files
-Some governmental agencies and other sources tend to use SAS, Stata, or SPSS for storing data and for carrying out various data analyses. This is a legacy issue that is changing but a little too slowly for most of us who do not use these commercial software packages as the mainstays of our data work. But, even if you do not use these packages, you should know how to read in data created in their native formats. As it turns out, **SPSS, Stata, SAS** files can be read via the `haven` package, and with relative ease. 
+**SPSS, Stata, SAS** files can be read via the `{haven}` package
 
 
 ```R
 library(haven)
 
 read_stata(
-  "data/ImportDataStata.dta"
-  ) -> df.stata
+  here(
+    "data", 
+    "ImportDataStata.dta"
+    )
+  ) -> df.stata 
 
 read_sas(
-  "data/ImportDataSAS.sas7bdat"
+  here(
+    "data", 
+    "ImportDataSAS.sas7bdat"
+    )
   ) -> df.sas
 
 read_sav(
-  "data/ImportDataSPSS.sav"
+  here(
+    "data", 
+    "ImportDataSPSS.sav"
+    )
   ) -> df.spss
 ```
 
 
 ```R
-# Check the files
-
-names(df.stata)
-
-glimpse(df.sas)
+head(df.spss)
 ```
 
 
-<style>
-.list-inline {list-style: none; margin:0; padding: 0}
-.list-inline>li {display: inline-block}
-.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
-</style>
-<ol class=list-inline><li>'x'</li><li>'y'</li><li>'z'</li></ol>
+<table class="dataframe">
+<caption>A tibble: 6 × 3</caption>
+<thead>
+	<tr><th scope=col>x</th><th scope=col>y</th><th scope=col>z</th></tr>
+	<tr><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><td> 1</td><td> 2</td><td> 3</td></tr>
+	<tr><td> 4</td><td> 5</td><td> 6</td></tr>
+	<tr><td> 7</td><td> 8</td><td> 9</td></tr>
+	<tr><td>10</td><td>11</td><td>12</td></tr>
+	<tr><td>13</td><td>14</td><td>15</td></tr>
+	<tr><td>16</td><td>17</td><td>18</td></tr>
+</tbody>
+</table>
 
 
 
-    Rows: 7
-    Columns: 3
-    $ x [3m[90m<dbl>[39m[23m 1, 4, 7, 10, 13, 16, 19
-    $ y [3m[90m<dbl>[39m[23m 2, 5, 8, 11, 14, 17, 20
-    $ z [3m[90m<dbl>[39m[23m 3, 6, 9, 12, 15, 18, 21
+It is also common to encounter **fixed-width** files where the raw data are stored without any gaps between successive variables. However, these files will come with documentation that will tell you where each variable starts and ends, along with other details about each variable. The example shown below is courtesy of [Oracle](https://www.oracle.com/webfolder/technetwork/data-quality/edqhelp/Content/resources/Images/director/fixedwidthfilenonewlines.png)
 
-
-### Fixed-width files 
-It is also common to encounter **fixed-width** files where the raw data are stored without any gaps between successive columns. This is also a legacy format from the early days of computers and punch cards, and one of the most efficient ways of storing large amounts of data. These files come with documentation that will give you the necessary details about where each column starts and ends, etc. [See here for some examples of layouts from the Census Bureau](https://www.census.gov/programs-surveys/geography/technical-documentation/records-layout/2010-zcta-record-layout.html#par_textimage_0).  
+![An example of a fixed-width file](https://www.oracle.com/webfolder/technetwork/data-quality/edqhelp/Content/resources/Images/director/fixedwidthfilenonewlines.png)
 
 
 ```R
 read.fwf(
-  "data/fwfdata.txt",
+  here(
+    "data", 
+    "fwfdata.txt"
+    ),
   widths = c(4, 9, 2, 4),
   header = FALSE,
   col.names = c("Name", "Month", "Day", "Year")
-  ) -> df.fw 
+  ) -> df.fw
 ```
-
-Notice we need `widths = c(4,9,2,4)` to indicate how many slots each column takes and then `col.names = c("Name", "Month", "Day", "Year")` to label the columns since the data file does not have variable names. if you mess up with `widths = ` you end up with garbage because R does not know where any column starts or ends so be careful.   
 
 
 ```R
-glimpse(df.fw)
+head(df.fw)
 ```
 
-    Rows: 2
-    Columns: 4
-    $ Name  [3m[90m<chr>[39m[23m "Amy ", "Abby"
-    $ Month [3m[90m<chr>[39m[23m " December", " December"
-    $ Day   [3m[90m<int>[39m[23m 1, 11
-    $ Year  [3m[90m<int>[39m[23m 2017, 2017
 
+<table class="dataframe">
+<caption>A data.frame: 2 × 4</caption>
+<thead>
+	<tr><th></th><th scope=col>Name</th><th scope=col>Month</th><th scope=col>Day</th><th scope=col>Year</th></tr>
+	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td>Amy </td><td> December</td><td> 1</td><td>2017</td></tr>
+	<tr><th scope=row>2</th><td>Abby</td><td> December</td><td>11</td><td>2017</td></tr>
+</tbody>
+</table>
+
+
+
+Note: we need `widths = c()` to indicate how many slots each variable takes and then `col.names = c()` to label the columns since the data file does not have variable names. The documentation (not shown here) has Name spanning the first 4 characters, Month spans the next 9 characters, Day spans the next two, and then Year spans the next 4 characters. 
 
 ## Reading Files from the Web
-One of the benefits of software like R is its ability to read data files over the web __without requiring you to manually download the file and save a physical copy to be read in__. Specifically, it is possible to list the full web-path for a file and read it in. This ability is invaluable when the data tend to be periodically updated by the source (for example, by the Census Bureau, Bureau of Labor, Bureau of Economic Analysis, etc.). Here are a few examples.  
+
+Files need not all be locally stored and can be read off the web by specifying the full web-path for the file when reading it. This is often useful when updated the data tend to be updated by the source (for example, a health department that updates the CSV file containing the previous day's COVID-19 cases, hospitalizatins, and deaths.) One such file is available [here](https://coronavirus.ohio.gov/static/dashboards/COVIDDeathData_CountyOfResidence.csv)
 
 
 ```R
 read.table(
   "http://data.princeton.edu/wws509/datasets/effort.dat"
-  ) -> fpe 
+  ) -> fpe
 
-fpe # This command asks R to show us what fpe contains 
+fpe
 ```
 
 
@@ -311,7 +328,7 @@ fpe # This command asks R to show us what fpe contains
 
 
 
-Here are some more files read directly from the web.
+Note that calling something we created and saved with a name, such as this dataframe `fpe`, will show us the contents 
 
 
 ```R
@@ -320,33 +337,44 @@ read.table(
   header = TRUE
   ) -> test.txt 
 
-read_csv(
-  "https://stats.idre.ucla.edu/stat/data/test.csv"
+read.csv(
+  "https://stats.idre.ucla.edu/stat/data/test.csv",
+  header = TRUE
   ) -> test.csv
 
-read_sav(
+read.csv(
+  'https://coronavirus.ohio.gov/static/dashboards/COVIDDeathData_CountyOfResidence.csv',
+  header = TRUE
+  ) -> ohcovid19
+
+library(foreign)
+
+read.spss(
   "https://stats.idre.ucla.edu/stat/data/hsb2.sav"
-  ) -> hsb2.spss 
+  ) -> hsb2.spss
+
+as.data.frame(hsb2.spss) -> df.hsb2.spss
 ```
 
-    [1mRows: [22m[34m8[39m [1mColumns: [22m[34m6[39m
-    
-    [36m──[39m [1mColumn specification[22m [36m────────────────────────────────────────────────────────[39m
-    [1mDelimiter:[22m ","
-    [31mchr[39m (1): prgtype
-    [32mdbl[39m (5): gender, id, ses, schtyp, level
-    
-    
-    [36mℹ[39m Use [30m[47m[30m[47m`spec()`[47m[30m[49m[39m to retrieve the full column specification for this data.
-    [36mℹ[39m Specify the column types or set [30m[47m[30m[47m`show_col_types = FALSE`[47m[30m[49m[39m to quiet this message.
-    
+Note that `hsb2.spss` was read with the `{foreign}`, an alternative package to `{haven}` 
+
+- `{foreign}` calls `read.spss` 
+- `{haven}` calls `read_spss`
+
+You should also check out another package for data import\export -- `{rio}` documented [here](https://github.com/leeper/rio)
 
 
-If you look at `fpe` you will notice that there are three columns but the rows each have a unique name. These are `row names` that are remembered by R but will not show up with a column name.  
+```R
+library(haven)
 
-### Excel files off the web
+read_spss(
+  "https://stats.idre.ucla.edu/stat/data/hsb2.sav"
+  ) -> hsb2.spss.haven
+```
 
-Excel files cannot be read off the web in the same manner as we did `*.csv`, `*.txt`, etc. The code sequence is a little more convoluted, as shown below. 
+The `{foreign}` package will also read Stata and other formats and was the  one I used a lot before defaulting to `haven` now. There are other packages for reading SAS, SPSS,  etc. data files -- `{sas7bdat}`, `{data.table}`, `{xlsx}`, `{XLConnect}`, `{gdata}`, etc. 
+
+Excel files cannot be read off the web in the same manner as we did *.csv, *.txt, etc. The code sequence is a little more convoluted, as shown below.
 
 
 ```R
@@ -361,7 +389,7 @@ download.file(
 read_excel("hsb2.xls") -> hsb2
 ```
 
-You could also do the following with the `{rio}` package but remember to install the package (if missing) and to run `rio::install_formats()` before executing the code below. 
+You could also do the following with the {rio} package but remember to install the `{rio}` package (if missing) and to run __`rio::install_formats()`__ before executing the code below.
 
 
 ```R
@@ -372,11 +400,8 @@ library(rio)
 import(url) -> my_data
 ```
 
-## Reading compressed files (*.zip, *.gz, etc.)
-
-Large files may sit in compressed archives on the web and R has a neat way of allowing you to download the file, unzip it, and read it. Why is this useful? Because if these files tend to be update periodicially, this ability lets you use the same piece of R code to download/unzip/read the updated file. The tedious way would be to manually download, unzip, place in the appropriate data folder, and then read it. 
-
-The code is shown below but not run.
+## Reading compressed files 
+Large files may sit in compressed archives on the web and R has a neat way of allowing you to download the file, unzip it, and read it. Why is this useful? Because if these files tend to be update periodicially, this ability lets you use the same piece of R code to download/unzip/read the updated file. The tedious way would be to manually download, unzip, place in the appropriate data folder, and then read it.
 
 
 ```R
@@ -398,46 +423,61 @@ haven::read_sas(
 unlink(temp)
 ```
 
-## Labeling data values
-
-Often the data contain columns that record information with numeric codes that reflect some qualitative attributes. For example, whether an individual is Male or Female may be stored as 0 and 1, respectively. We can append the correct qualitative labels to these columns, and then hen we create graphs or tables, what is being displayed will be readily apparent (i.e., the reader\viewer does not have to work hard to figure out what is a `0` and what is a `1`).
-
-We will read in a small dataset that has information on 200 students. The data come from the [High School and Beyond study](https://nces.ed.gov/surveys/hsb/)
+Note that in the code above I didn't run 
 
 
-| Column Name | Values and Labels\Meanings |
-| :-- | :-- |
-| female | (0/1) |
-| race | (1=hispanic 2=asian 3=african-amer 4=white) |
-| ses | socioeconomic status (1=low 2=middle 3=high) |
-| schtyp | type of school (1=public 2=private) |
-| prog | type of program (1=general 2=academic 3=vocational) |
-| read | standardized reading score |
-| write | standardized writing score |
-| math | standardized math score |
-| science | standardized science score |
-| socst | standardized social studies score |
+```R
+library(haven)
 
-## Saving R data files
+read_sas(
+  unzip(
+    temp, 
+    "pcen_v2018_y1018.sas7bdat/pcen_v2018_y1018.sas7bdat"
+    )
+  ) -> oursasdata
+```
+
+This is because you can skip the `library()` command before using some function from the package by directly invoking the package as in `haven::`. 
+
 You can save your data in a format that R will recognize, giving it the **RData** or **rdata** extension 
 
-Check the **data** directory to confirm that both files are present 
+
+```R
+save(
+  oursasdata, 
+  file = here(
+    "data", 
+    "oursasdata.RData"
+    )
+  )
+
+save(
+  oursasdata, 
+  file = here(
+    "data", 
+    "oursasdata.rdata"
+    )
+  )
+```
+
+Check your **data** directory to confirm both files are present 
 
 ## Minimal example of data processing
-Working with the **hsb2** data: 200 students from the [High School and Beyond study](https://nces.ed.gov/surveys/hsb/). The variables in this file are:  
 
-- female  = (0/1) 
-- race = (1=hispanic 2=asian 3=african-amer 4=white) 
-- ses  = socioeconomic status (1=low 2=middle 3=high) 
-- schtyp =  type of school (1=public 2=private) 
-- prog   = type of program (1=general 2=academic 3=vocational) 
-- read  =  standardized reading score 
-- write  = standardized writing score 
-- math   = standardized math score 
-- science = standardized science score 
-- socst = standardized social studies score 
+Working with the **hsb2** data: 200 students from the High school and Beyond study 
 
-Let us start by reading in these data.
+| Variable | Description |
+| :- | :- |
+| `female`  | (0 = Male 1 = Female) |
+| `race` | (1=Hispanic 2=Asian 3=African-American 4=White) |
+| `ses`  | socioeconomic status (1=Low 2=Middle 3=High) |
+| `schtyp` |  type of school (1=Public 2=Private) |
+| `prog`   | type of program (1=General 2=Academic 3=Vocational) |
+| `read`  |  standardized reading score |
+| `write`  | standardized writing score |
+| `math`   | standardized math score |
+| `science` | standardized science score |
+| `socst` | standardized social studies score |
 
 
 ```R
@@ -446,281 +486,353 @@ read.table(
   header = TRUE,
   sep = ","
   ) -> hsb2
+
+head(hsb2)
 ```
 
-We can easily check the basic descriptive statistics of each column in a data file by running the `summary(filename)` command. Let us see what results if we do this with the `hsb2` data set.
+
+<table class="dataframe">
+<caption>A data.frame: 6 × 11</caption>
+<thead>
+	<tr><th></th><th scope=col>id</th><th scope=col>female</th><th scope=col>race</th><th scope=col>ses</th><th scope=col>schtyp</th><th scope=col>prog</th><th scope=col>read</th><th scope=col>write</th><th scope=col>math</th><th scope=col>science</th><th scope=col>socst</th></tr>
+	<tr><th></th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td> 70</td><td>0</td><td>4</td><td>1</td><td>1</td><td>1</td><td>57</td><td>52</td><td>41</td><td>47</td><td>57</td></tr>
+	<tr><th scope=row>2</th><td>121</td><td>1</td><td>4</td><td>2</td><td>1</td><td>3</td><td>68</td><td>59</td><td>53</td><td>63</td><td>61</td></tr>
+	<tr><th scope=row>3</th><td> 86</td><td>0</td><td>4</td><td>3</td><td>1</td><td>1</td><td>44</td><td>33</td><td>54</td><td>58</td><td>31</td></tr>
+	<tr><th scope=row>4</th><td>141</td><td>0</td><td>4</td><td>3</td><td>1</td><td>3</td><td>63</td><td>44</td><td>47</td><td>53</td><td>56</td></tr>
+	<tr><th scope=row>5</th><td>172</td><td>0</td><td>4</td><td>2</td><td>1</td><td>2</td><td>47</td><td>52</td><td>57</td><td>53</td><td>61</td></tr>
+	<tr><th scope=row>6</th><td>113</td><td>0</td><td>4</td><td>2</td><td>1</td><td>2</td><td>44</td><td>52</td><td>51</td><td>63</td><td>61</td></tr>
+</tbody>
+</table>
+
+
+
+There are no value labels for the various qualitative/categorical variables (female, race, ses, schtyp, and prog) so we next create these. 
 
 
 ```R
-summary(hsb2)
+factor(
+  hsb2$female,
+  levels = c(0, 1),
+  labels=c("Male", "Female")
+  ) -> hsb2$female 
+
+factor(
+  hsb2$race,
+  levels = c(1:4),
+  labels=c("Hispanic", "Asian", "African American", "White")
+  ) -> hsb2$race
+
+factor(
+  hsb2$ses, 
+  levels = c(1:3),
+  labels=c("Low", "Middle", "High")
+  ) -> hsb2$ses
+
+factor(
+  hsb2$schtyp,
+  levels = c(1:2),
+  labels=c("Public", "Private")
+  ) -> hsb2$schtyp
+
+factor(
+  hsb2$prog,
+  levels = c(1:3), 
+  labels=c("General", "Academic", "Vocational")
+  ) -> hsb2$prog
 ```
 
+I am overwriting each variable, indicating to R that variable `x` will show up as numeric with values 0 and 1, and that a 0 should be treated as male and a 1 as female, and so on. There are are four values for race, 3 for ses, 2 for schtyp, and 3 for prog, so the mapping has to reflect this. 
 
-           id             female           race           ses            schtyp    
-     Min.   :  1.00   Min.   :0.000   Min.   :1.00   Min.   :1.000   Min.   :1.00  
-     1st Qu.: 50.75   1st Qu.:0.000   1st Qu.:3.00   1st Qu.:2.000   1st Qu.:1.00  
-     Median :100.50   Median :1.000   Median :4.00   Median :2.000   Median :1.00  
-     Mean   :100.50   Mean   :0.545   Mean   :3.43   Mean   :2.055   Mean   :1.16  
-     3rd Qu.:150.25   3rd Qu.:1.000   3rd Qu.:4.00   3rd Qu.:3.000   3rd Qu.:1.00  
-     Max.   :200.00   Max.   :1.000   Max.   :4.00   Max.   :3.000   Max.   :2.00  
-          prog            read           write            math      
-     Min.   :1.000   Min.   :28.00   Min.   :31.00   Min.   :33.00  
-     1st Qu.:2.000   1st Qu.:44.00   1st Qu.:45.75   1st Qu.:45.00  
-     Median :2.000   Median :50.00   Median :54.00   Median :52.00  
-     Mean   :2.025   Mean   :52.23   Mean   :52.77   Mean   :52.65  
-     3rd Qu.:2.250   3rd Qu.:60.00   3rd Qu.:60.00   3rd Qu.:59.00  
-     Max.   :3.000   Max.   :76.00   Max.   :67.00   Max.   :75.00  
-        science          socst      
-     Min.   :26.00   Min.   :26.00  
-     1st Qu.:44.00   1st Qu.:46.00  
-     Median :53.00   Median :52.00  
-     Mean   :51.85   Mean   :52.41  
-     3rd Qu.:58.00   3rd Qu.:61.00  
-     Max.   :74.00   Max.   :71.00  
+If you wanted to preserve the original variables you would have to use unique names when saving each `factor()` as in, for example, <code>-> hsb2$female.f </code> and so on.  
 
+Note that this is just a quick run through with creating value labels; we will cover this in greater detail in a later module. 
 
-Look at the output! R mistakenly treats several of the qualitative variables as if they are numeric, rendering incorrect information. Let us fix this problem and then we can rerun the `summary()` command to see if things have improved.
+**save your work!!**
 
-The way we append value labels is by converting a numeric variable\column to what R calls a `factor`. When we do so, we tell R to assign a particular label _(the word or the phrase)_ to a particular level _(the number)_ as shown below. 
-
-> It is good habit to create a new variable each time you do some conversion so that the original variable does not get overwritten. If you do not get into the habit and end up overwriting the original variable, you will have to start from scratch if you end up making a mistake. 
+Having added labels to the factors in __hsb2__ we can now save the data for later use. 
 
 
 ```R
-factor(hsb2$female,
-       levels = c(0, 1),
-       labels = c("Male", "Female")
-       ) -> hsb2$female.f 
-
-factor(hsb2$race,
-       levels = c(1:4),
-       labels = c("Hispanic", "Asian", "African American", "White")
-       ) -> hsb2$race.f
-
-factor(hsb2$ses,
-       levels = c(1:3),
-       labels = c("Low", "Middle", "High")
-       ) -> hsb2$ses.f
-
-factor(hsb2$schtyp,
-       levels = c(1:2),
-       labels = c("Public", "Private")
-       ) -> hsb2$schtyp.f
-
-factor(hsb2$prog,
-       levels = c(1:3),
-       labels = c("General", "Academic", "Vocational")
-       ) -> hsb2$prog.f
+save(
+  hsb2, 
+  file = here(
+    "data", 
+    "hsb2.RData"
+    )
+  ) 
 ```
 
-Now we check our work by re-running the `summary(hsb2)` command.
-
-
-```R
-summary(hsb2)
-```
-
-
-           id             female           race           ses            schtyp    
-     Min.   :  1.00   Min.   :0.000   Min.   :1.00   Min.   :1.000   Min.   :1.00  
-     1st Qu.: 50.75   1st Qu.:0.000   1st Qu.:3.00   1st Qu.:2.000   1st Qu.:1.00  
-     Median :100.50   Median :1.000   Median :4.00   Median :2.000   Median :1.00  
-     Mean   :100.50   Mean   :0.545   Mean   :3.43   Mean   :2.055   Mean   :1.16  
-     3rd Qu.:150.25   3rd Qu.:1.000   3rd Qu.:4.00   3rd Qu.:3.000   3rd Qu.:1.00  
-     Max.   :200.00   Max.   :1.000   Max.   :4.00   Max.   :3.000   Max.   :2.00  
-          prog            read           write            math      
-     Min.   :1.000   Min.   :28.00   Min.   :31.00   Min.   :33.00  
-     1st Qu.:2.000   1st Qu.:44.00   1st Qu.:45.75   1st Qu.:45.00  
-     Median :2.000   Median :50.00   Median :54.00   Median :52.00  
-     Mean   :2.025   Mean   :52.23   Mean   :52.77   Mean   :52.65  
-     3rd Qu.:2.250   3rd Qu.:60.00   3rd Qu.:60.00   3rd Qu.:59.00  
-     Max.   :3.000   Max.   :76.00   Max.   :67.00   Max.   :75.00  
-        science          socst         female.f                race.f   
-     Min.   :26.00   Min.   :26.00   Male  : 91   Hispanic        : 24  
-     1st Qu.:44.00   1st Qu.:46.00   Female:109   Asian           : 11  
-     Median :53.00   Median :52.00                African American: 20  
-     Mean   :51.85   Mean   :52.41                White           :145  
-     3rd Qu.:58.00   3rd Qu.:61.00                                      
-     Max.   :74.00   Max.   :71.00                                      
-        ses.f       schtyp.f          prog.f   
-     Low   :47   Public :168   General   : 45  
-     Middle:95   Private: 32   Academic  :105  
-     High  :58                 Vocational: 50  
-                                               
-                                               
-                                               
-
-
-Aha! Everything is as it should be. 
-
-Before we move on though, let us save our hsb2 data file that has new columns. We will save it in the native `R` format. The command to save a file is very simple -- `save(filename, file = "filepath/filename.RData")`
-
-> You could also do `save(filename, file = "filepath/filename.rdata")` if that is what you intuitively prefer.
-
-
-```R
-save(hsb2, file = "data/hsb2.RData")
-```
-
-## Loading RData files
-
-When we want to work with RData files, we have to load them with the `load("filepath/filename.RData")` command. Here I am doing it for the hsb2 data.
-
-
-```R
-load("data/hsb2.RData")
-```
-
-Whenever I load a data-set, I run the `summary(...)` command just to ensure that the file did load without errors.
-
-
-```R
-summary(hsb2)
-```
-
-
-           id             female           race           ses            schtyp    
-     Min.   :  1.00   Min.   :0.000   Min.   :1.00   Min.   :1.000   Min.   :1.00  
-     1st Qu.: 50.75   1st Qu.:0.000   1st Qu.:3.00   1st Qu.:2.000   1st Qu.:1.00  
-     Median :100.50   Median :1.000   Median :4.00   Median :2.000   Median :1.00  
-     Mean   :100.50   Mean   :0.545   Mean   :3.43   Mean   :2.055   Mean   :1.16  
-     3rd Qu.:150.25   3rd Qu.:1.000   3rd Qu.:4.00   3rd Qu.:3.000   3rd Qu.:1.00  
-     Max.   :200.00   Max.   :1.000   Max.   :4.00   Max.   :3.000   Max.   :2.00  
-          prog            read           write            math      
-     Min.   :1.000   Min.   :28.00   Min.   :31.00   Min.   :33.00  
-     1st Qu.:2.000   1st Qu.:44.00   1st Qu.:45.75   1st Qu.:45.00  
-     Median :2.000   Median :50.00   Median :54.00   Median :52.00  
-     Mean   :2.025   Mean   :52.23   Mean   :52.77   Mean   :52.65  
-     3rd Qu.:2.250   3rd Qu.:60.00   3rd Qu.:60.00   3rd Qu.:59.00  
-     Max.   :3.000   Max.   :76.00   Max.   :67.00   Max.   :75.00  
-        science          socst         female.f                race.f   
-     Min.   :26.00   Min.   :26.00   Male  : 91   Hispanic        : 24  
-     1st Qu.:44.00   1st Qu.:46.00   Female:109   Asian           : 11  
-     Median :53.00   Median :52.00                African American: 20  
-     Mean   :51.85   Mean   :52.41                White           :145  
-     3rd Qu.:58.00   3rd Qu.:61.00                                      
-     Max.   :74.00   Max.   :71.00                                      
-        ses.f       schtyp.f          prog.f   
-     Low   :47   Public :168   General   : 45  
-     Middle:95   Private: 32   Academic  :105  
-     High  :58                 Vocational: 50  
-                                               
-                                               
-                                               
-
+Let us test if this R Markdown file will knit to html. If all is good then we can `Close Project`, and when we do so, RStudio will close the project and reopen in a vanilla session.  
 
 ## Data in packages 
-Almost all R packages come bundled with data-sets, too many of them to walk you through but
+
+Almost all R packages come bundled with data-sets, too many of them to walk you through but 
 
 - [see here for standard ones](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/00Index.html) 
 - [here are some more](https://vincentarelbundock.github.io/Rdatasets/datasets.html) 
 - [and some more](http://www.public.iastate.edu/~hofmann/data_in_r_sortable.html) 
 
-To load data from a package, if you know the data-set's name, it is easy to load it, as shown below. Some times you may need to install the package. We do this with the `install.packages("packagename")` command. 
+To load data from a package, if you know the data-set's name, run 
 
 
 ```R
-install.packages('palmerpenguins')
+library(HistData)
 
-library(palmerpenguins)
+data("Galton")
 
-data(penguins, package = 'palmerpenguins')
-
-head(penguins)
+names(Galton)
 ```
 
-    
-    The downloaded binary packages are in
-    	/var/folders/qh/6q39v0755_54rxmbl8m5ttnwy0twd7/T//RtmptNyMaS/downloaded_packages
+
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>'parent'</li><li>'child'</li></ol>
 
 
 
-<table class="dataframe">
-<caption>A tibble: 6 × 8</caption>
-<thead>
-	<tr><th scope=col>species</th><th scope=col>island</th><th scope=col>bill_length_mm</th><th scope=col>bill_depth_mm</th><th scope=col>flipper_length_mm</th><th scope=col>body_mass_g</th><th scope=col>sex</th><th scope=col>year</th></tr>
-	<tr><th scope=col>&lt;fct&gt;</th><th scope=col>&lt;fct&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;fct&gt;</th><th scope=col>&lt;int&gt;</th></tr>
-</thead>
-<tbody>
-	<tr><td>Adelie</td><td>Torgersen</td><td>39.1</td><td>18.7</td><td>181</td><td>3750</td><td>male  </td><td>2007</td></tr>
-	<tr><td>Adelie</td><td>Torgersen</td><td>39.5</td><td>17.4</td><td>186</td><td>3800</td><td>female</td><td>2007</td></tr>
-	<tr><td>Adelie</td><td>Torgersen</td><td>40.3</td><td>18.0</td><td>195</td><td>3250</td><td>female</td><td>2007</td></tr>
-	<tr><td>Adelie</td><td>Torgersen</td><td>  NA</td><td>  NA</td><td> NA</td><td>  NA</td><td>NA    </td><td>2007</td></tr>
-	<tr><td>Adelie</td><td>Torgersen</td><td>36.7</td><td>19.3</td><td>193</td><td>3450</td><td>female</td><td>2007</td></tr>
-	<tr><td>Adelie</td><td>Torgersen</td><td>39.3</td><td>20.6</td><td>190</td><td>3650</td><td>male  </td><td>2007</td></tr>
-</tbody>
-</table>
-
-
+or you can run 
 
 
 ```R
+data(
+  "GaltonFamilies", 
+  package = "HistData"
+  )
+
+names(GaltonFamilies)
+```
+
+
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>'family'</li><li>'father'</li><li>'mother'</li><li>'midparentHeight'</li><li>'children'</li><li>'childNum'</li><li>'gender'</li><li>'childHeight'</li></ol>
+
+
+
+## Saving data and workspaces 
+You can save your data via 
+
+  - `save(dataname, file = "filepath/filename.RData")` or 
+  - `save(dataname, file = "filepath/filename.rdata")`
+
+
+```R
+data(mtcars)
+
+save(
+  mtcars, 
+  file = here(
+    "data", 
+    "mtcars.RData"
+    )
+  )
+
+rm(list = ls()) # To clear the Environment
+
+load(
+  here(
+    "data", 
+    "mtcars.RData"
+    )
+  )
+```
+
+You can also save multiple data files as follows: 
+
+
+```R
+data(mtcars)
+
 library(ggplot2)
 
-data(diamonds, package = 'ggplot2')
+data(diamonds)
 
-head(diamonds)
+save(
+  mtcars, 
+  diamonds, 
+  file = here(
+    "data", 
+    "mydata.RData"
+    )
+  )
+
+rm(list = ls()) # To clear the Environment
+
+load(
+  here(
+    "data", 
+    "mydata.RData"
+    )
+  )
 ```
 
-
-<table class="dataframe">
-<caption>A tibble: 6 × 10</caption>
-<thead>
-	<tr><th scope=col>carat</th><th scope=col>cut</th><th scope=col>color</th><th scope=col>clarity</th><th scope=col>depth</th><th scope=col>table</th><th scope=col>price</th><th scope=col>x</th><th scope=col>y</th><th scope=col>z</th></tr>
-	<tr><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;ord&gt;</th><th scope=col>&lt;ord&gt;</th><th scope=col>&lt;ord&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
-</thead>
-<tbody>
-	<tr><td>0.23</td><td>Ideal    </td><td>E</td><td>SI2 </td><td>61.5</td><td>55</td><td>326</td><td>3.95</td><td>3.98</td><td>2.43</td></tr>
-	<tr><td>0.21</td><td>Premium  </td><td>E</td><td>SI1 </td><td>59.8</td><td>61</td><td>326</td><td>3.89</td><td>3.84</td><td>2.31</td></tr>
-	<tr><td>0.23</td><td>Good     </td><td>E</td><td>VS1 </td><td>56.9</td><td>65</td><td>327</td><td>4.05</td><td>4.07</td><td>2.31</td></tr>
-	<tr><td>0.29</td><td>Premium  </td><td>I</td><td>VS2 </td><td>62.4</td><td>58</td><td>334</td><td>4.20</td><td>4.23</td><td>2.63</td></tr>
-	<tr><td>0.31</td><td>Good     </td><td>J</td><td>SI2 </td><td>63.3</td><td>58</td><td>335</td><td>4.34</td><td>4.35</td><td>2.75</td></tr>
-	<tr><td>0.24</td><td>Very Good</td><td>J</td><td>VVS2</td><td>62.8</td><td>57</td><td>336</td><td>3.94</td><td>3.96</td><td>2.48</td></tr>
-</tbody>
-</table>
+If you want to save just a single `object` from the environment and then load it in a later session, maybe with a different name, then you should use `saveRDS()` and `readRDS()` 
 
 
+```R
+data(mtcars)
 
----------------
+
+saveRDS(
+  mtcars, 
+  file = here(
+    "data", 
+    "mydata.RDS"
+    )
+  )
+
+rm(list = ls()) # To clear the Environment
+
+readRDS(
+  here(
+    "data", 
+    "mydata.RDS"
+    )
+  ) -> ourdata 
+```
+
+If instead you did the following, the file will be read with the name it had when you saved it. 
+
+
+```R
+data(mtcars)
+
+save(
+  mtcars, 
+  file = here(
+    "data", 
+    "mtcars.RData"
+    )
+  )
+
+rm(list = ls())  # To clear the Environment
+
+load(
+  here(
+    "data", 
+    "mtcars.RData"
+    )
+  ) -> ourdata # Note ourdata is listed as "mtcars" 
+```
+
+If you want to `save everything` you have done in the work session you can via `save.image()` 
+
+
+```R
+save.image(
+  file = here(
+    "data", 
+    "mywork_jan182018.RData"
+    )
+  )
+```
+
+Images are useful if you have a lot of R code you have written and various objects generated that individually take time to build and you do not want to start from scratch the next time around. 
+
+--------------
+
 ## Exercises for practice 
-These are some exercises you can use to practice and build your R skills. They are not for grade. 
 
-#### Exercise 01: Reading in some data files 
+### Ex. 1: Creating and knitting a new RMarkdown file
 
-1. Create a new Notebook by going to File -> New -> Notebook.
+Open a fresh session by launching RStudio and then running `File -> Open Project...`  
 
-2. When prompted to select a kernel, use the dropdown menu to select the _R_ kernel. 
+Give it a title, your name as the author, and then save it with the following name:  `m1ex1.Rmd`  
 
-3. The notebook will be untitled, so go ahead and save it with a name, something like `yourlastname_ex01` and you will see `yourlastname_ex01.ipynb` as the name. 
+Delete all content starting with `line 12`. 
 
-4. Now read in the `Stata` data file found [here](http://www.stata.com/data/jwooldridge/eacsap/mroz.dta) 
+Add this level 1 heading `The Starwars Data` and then insert your first code chunk *exactly as shown below* 
 
-5. Create a new cell and run the `summary` command to check the contents of this data file and look at the first 6 rows of data with the appropriate `head` command.and look at the first 6 rows of data with the appropriate `head` command.
 
-6. In a new cell, read in tthe `SPSS` file found [here](http://calcnet.mth.cmich.edu/org/spss/V16_materials/DataSets_v16/airline_passengers.sav) 
+```R
+library(dplyr)
 
-7. In a new cell, run the `summary` command and look at the first 6 rows of data with the appropriate `head` command.
+data(starwars)
 
-#### Exercise 02: Reading in local data and labeling some values
+str(starwars)
+```
 
-1. Download [this dataset](https://s3.amazonaws.com/tripdata/201502-citibike-tripdata.zip), extract the file inside the zip archive and upload it to the `data` folder. 
+Add this level 2 heading `Character  Heights and Weights` and then your second code chunk 
 
-2. In a new cell, read in this uploaded data file with the appropriate commands. 
 
-3. The variable `gender` has the following codes: `Zero = unknown; 1 = male; 2 = female`.  Use this coding scheme to create a new column that shows `gender` as a `factor` with these value labels 
+```R
+plot(starwars$height, plot$mass)
+```
 
-4. Check the first 6 rows of the dataset and also run `summary` to check the new column was created as desired. 
+Now knit this file to **html** 
 
-5. In a new cell, write the commands necessary to save each of the three data-sets as separate `RData` files. 
+### Ex. 2: Lorem Ipsum paragraphs and graphs 
 
-#### Exercise 03: Welcome to Kaggle & Mass Shootings 
+Go to [this website](https://loremipsumgenerator.com/generator/?n=2&t=p) and generate five Lorem Ipsum placeholder text paragraphs. Insert these five paragraphs in a new RMarkdown file.  
 
-Go to [this page on Kaggle](https://www.kaggle.com/zusmani/us-mass-shootings-last-50-years) and read the description of the data-set on mass shootings in the United States that occurred during the 1966-2017 period. once you have read the overview of the data, click the "Data" tab and download the file called `Mass Shootings Dataset.csv`. Be careful; there are several versions so the one you want is the very last one and not any that have a version number attached, such as "Mass Shootings Dataset Ver 2.csv" for example. 
+  - para 1: must have level 1 heading 
+  - para 2: must have level 2 heading 
+  - para 3: must have level 3 heading 
+  - para 4: must have level 4 heading 
+  - para 5: must have level 5 heading 
 
-Now read this file, perhaps naming it `shootings` and run the `summary()` command on it. Note the number of observations and the number of variables in the data-set. 
+Using the `starwars` data, create five code chunks, one after each paragraph 
 
-Make sure you save the file in RData format as well. 
+  - Each code chunk will have the same R code (see below)
 
-#### Exercise 04: Animal Shelters 
 
-Go to [this page on Kaggle](https://www.kaggle.com/aaronschlegel/austin-animal-center-shelter-outcomes-and) and download the file called `aac_shelter_outcomes.zip`, unzip it, and AFTER reading the data overview, read in the file and generate the usual `summary` and also save it as an RData file.
+```R
+plot(starwars$height, starwars$mass)
+```
+
+Now knit this file to **html** 
+
+### Ex. 3: Reading in three data files 
+
+Create a new `RMarkdown` file.  
+
+Insert a code chunk that reads in both these files found on the web 
+
+- `http://www.stata.com/data/jwooldridge/eacsap/mroz.dta` 
+- `http://calcnet.mth.cmich.edu/org/spss/V16_materials/DataSets_v16/airline_passengers.sav` 
+
+In a follow-up code chunk, run the `summary()` command on each data-set 
+
+In a separate code chunk, read in [this dataset](https://s3.amazonaws.com/tripdata/201502-citibike-tripdata.zip) after you download it and save the unzipped file in your **data** folder. 
+
+- The variable `gender` has the following codes: `Zero = unknown; 1 = male; 2 = female` 
+- Use this coding scheme to convert `gender` into a `factor` with these value labels 
+
+In a follow-up chunk run both the following commands on this data-set 
+
+- `names()` 
+- `str()` 
+- `summary()` 
+
+In a final chunk, run the commands necessary to save each of the three data-sets as separate `RData` files. Make sure you save them in your **data** folder. 
+
+Now knit the complete `Rmd` file to **html** 
+
+### Ex. 4: Knitting with `prettydoc` 
+
+I'd like you to use a specific R Markdown format because the  resulting html files are very readable 
+
+Install `prettydoc` package. Now create a prettydoc Rmd file via `New File -> RMarkdown... -> From Template -> Lightweight and Pretty Document (HTML)` 
+
+Now take all the text and code chunk you created in Ex. 3 and insert it in this file. Make sure you add a title, etc in the `YAML` and then knit the file to `html` 
+
+You can play with the `theme:` and `highlight:` fields, choosing from the options [displayed here](https://github.com/yixuan/prettydoc/)
+ 
+You should consider using either the `prettydoc` format or the default RMarkdown templates baked into RStudio. You can explore those [here](http://www.datadreaming.org/post/r-markdown-theme-gallery/) and find the settings that can be tweaked via experimentation. 
+
+<center>Visitors</center>
+<center>
+<div id="sfcgz9jyj612nqn8gw3ds33zd44pw6mc3fg"></div>
+<script type="text/javascript" src="https://counter7.stat.ovh/private/counter.js?c=gz9jyj612nqn8gw3ds33zd44pw6mc3fg&down=async" async></script><br><a href="https://www.freecounterstat.com">website counter</a><noscript><a href="https://www.freecounterstat.com" title="website counter"><img src="https://counter7.stat.ovh/private/freecounterstat.php?c=gz9jyj612nqn8gw3ds33zd44pw6mc3fg" border="0" title="website counter" alt="website counter"></a>
+</noscript>
+</center>
+
